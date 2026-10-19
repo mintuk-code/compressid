@@ -1,4 +1,5 @@
 import { LIMITS } from "@/lib/compress/config";
+import { safeDisplayName } from "@/lib/compress/format";
 import { ERROR_TEXT } from "@/lib/compress/messages";
 import type { HistoryEntry } from "@/lib/compress/types";
 
@@ -32,9 +33,11 @@ function writeJson(key: string, value: unknown) {
 
 export function readHistory(): HistoryEntry[] {
   const now = Date.now();
-  return readJson<HistoryEntry[]>(HISTORY_KEY, []).filter(
-    (item) => item && typeof item.at === "number" && now - item.at < LIMITS.historyTtlMs,
-  );
+  return readJson<HistoryEntry[]>(HISTORY_KEY, []).flatMap((item) => {
+    if (!item || typeof item.at !== "number" || now - item.at >= LIMITS.historyTtlMs) return [];
+    if (typeof item.name !== "string") return [];
+    return [{ ...item, name: safeDisplayName(item.name) }];
+  });
 }
 
 export function pushHistory(entry: HistoryEntry): HistoryEntry[] {

@@ -32,6 +32,7 @@ function PrivacyPage() {
       </DocSection>
       <DocSection title="Keamanan">
         <p>Kami tidak menyebut proses ini “100% aman”. File tetap ada di perangkat Anda seperti file lain yang Anda buka. Jangan mengompres dokumen di komputer yang tidak Anda percayai.</p>
+        <p>Situs ini tidak menerima unggahan ke server, jadi file tidak bisa mengubah server. Yang ditolak di browser: file yang bukan PDF, serta PDF yang berisi skrip, lampiran, atau HTML terselubung. Ini bukan antivirus dan tidak menjamin setiap PDF berbahaya terdeteksi.</p>
       </DocSection>
     </DocPage>
   );

@@ -43,7 +43,7 @@ export function UploadZone({ onFile }: { onFile: (file: File, count: number) => 
         <Button onClick={() => inputRef.current?.click()}>Pilih PDF</Button>
       </div>
       <p className="mt-4 text-sm text-muted">
-        PDF saja · 1 file · maksimal {formatBytes(LIMITS.maxBytes)}
+        PDF saja · tanpa skrip atau lampiran · 1 file · maksimal {formatBytes(LIMITS.maxBytes)}
       </p>
       <input
         ref={inputRef}

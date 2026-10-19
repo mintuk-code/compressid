@@ -6,7 +6,7 @@ import { UploadZone } from "@/components/compress/upload-zone";
 import { Button } from "@/components/ui/button";
 import { LIMITS, SAWERIA, saweriaReady } from "@/lib/compress/config";
 import { compressInWorker, messageOf } from "@/lib/compress/engine";
-import { formatBytes, formatPercent, formatWhen, outputName, parseTargetMb, summarize } from "@/lib/compress/format";
+import { formatBytes, formatPercent, formatWhen, outputName, parseTargetMb, safeDisplayName, summarize } from "@/lib/compress/format";
 import { ERROR_TEXT } from "@/lib/compress/messages";
 import {
   bumpStats,
@@ -17,7 +17,7 @@ import {
   SAWERIA_POPUP_KEY,
 } from "@/lib/compress/storage";
 import type { HistoryEntry, ProfileId, ResultStats } from "@/lib/compress/types";
-import { hasPdfMagic, validateFileMeta } from "@/lib/compress/validate";
+import { hasActivePdfContent, hasPdfHeader, inspectPdf, validateFileMeta } from "@/lib/compress/validate";
 
 type Phase = "pick" | "ready" | "processing" | "result";
 
@@ -107,10 +107,10 @@ export function Compressor() {
       setNote(null);
       return;
     }
-    const magic = await hasPdfMagic(next);
+    const inspected = await inspectPdf(next);
     if (id !== requestId.current) return;
-    if (!magic) {
-      setBanner(ERROR_TEXT.INVALID_PDF);
+    if (inspected) {
+      setBanner(inspected);
       setNote(null);
       return;
     }
@@ -157,8 +157,14 @@ export function Compressor() {
         },
         (message) => setProgress({ fraction: message.fraction, label: message.label }),
       );
+      const out = new Uint8Array(result.buffer);
+      if (!hasPdfHeader(out) || hasActivePdfContent(out)) {
+        setBanner(ERROR_TEXT.UNSAFE_PDF);
+        setPhase("ready");
+        return;
+      }
       revoke();
-      const nextFileUrl = URL.createObjectURL(new Blob([result.buffer], { type: "application/pdf" }));
+      const nextFileUrl = URL.createObjectURL(new Blob([out], { type: "application/pdf" }));
       const nextThumbUrl = result.thumb
         ? URL.createObjectURL(new Blob([result.thumb], { type: "image/jpeg" }))
         : null;
@@ -174,7 +180,7 @@ export function Compressor() {
         pushHistory({
           id: newId(),
           at: Date.now(),
-          name: file.name,
+          name: safeDisplayName(file.name),
           inputBytes: result.stats.inputBytes,
           outputBytes: result.stats.outputBytes,
           profile,
@@ -198,7 +204,7 @@ export function Compressor() {
     const anchor = document.createElement("a");
     anchor.href = fileUrl;
     anchor.download = filename;
-    anchor.rel = "noopener";
+    anchor.rel = "noopener noreferrer";
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -225,7 +231,7 @@ export function Compressor() {
         {phase === "pick" ? <UploadZone onFile={(next, count) => void acceptFile(next, count)} /> : null}
         {phase === "ready" && file ? (
           <>
-            <FileCard name={file.name} size={file.size} onReplace={resetToPick} />
+            <FileCard name={safeDisplayName(file.name)} size={file.size} onReplace={resetToPick} />
             <SettingsPanel
               profile={profile}
               onProfile={setProfile}

@@ -43,10 +43,14 @@ export function formatWhen(timestamp: number): string {
   }).format(new Date(timestamp));
 }
 
+export function safeDisplayName(original: string): string {
+  const base = (original.split(/[/\\]/).pop() ?? "").replace(/[\u0000-\u001f\u007f]/g, "").replace(/[<>:"'|?*]/g, "").trim();
+  return (base || "dokumen.pdf").slice(0, 80);
+}
+
 export function outputName(original: string): string {
-  const base = original.replace(/^.*[/\\]/, "").replace(/\.pdf$/i, "");
-  const clean = base.replace(/[^\w.\- ()[\]]+/g, "").trim().slice(0, 80);
-  return `${clean || "dokumen"}-compressed.pdf`;
+  const base = safeDisplayName(original).replace(/\.pdf$/i, "").replace(/^\.+/g, "").trim();
+  return `${(base || "dokumen").slice(0, 60)}-compressed.pdf`;
 }
 
 export function parseTargetMb(raw: string): { ok: true; bytes: number | null } | { ok: false } {

@@ -2,6 +2,7 @@ export const ERROR_TEXT: Record<string, string> = {
   INVALID_TYPE: "File tidak didukung. Unggah PDF.",
   FILE_TOO_LARGE: "File terlalu besar. Maksimum 50 MB.",
   INVALID_PDF: "PDF tidak valid atau rusak. Buka atau perbaiki PDF, lalu unggah ulang.",
+  UNSAFE_PDF: "PDF ditolak karena berisi skrip, lampiran, atau kode aktif. File semacam itu tidak diproses.",
   PASSWORD_PROTECTED: "PDF memakai kata sandi dan belum dapat diproses.",
   PROCESSING_TIMEOUT: "Proses terlalu lama. Coba PDF yang lebih kecil.",
   COMPRESSION_FAILED: "PDF tidak dapat dikompres. Coba profil lain atau unggah ulang.",

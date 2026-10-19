@@ -173,8 +173,19 @@ function PreviewDialog({ url, onClose }: { url: string; onClose: () => void }) {
             <X className="size-5" />
           </button>
         </div>
-        <iframe title="Pratinjau PDF" src={url} className="mt-3 h-[70dvh] w-full rounded-control border border-line bg-bg" />
-        <a className={`${buttonStyles({ variant: "line", size: "lg" })} mt-3`} href={url} target="_blank" rel="noreferrer">
+        <iframe
+          title="Pratinjau PDF"
+          src={url}
+          sandbox="allow-scripts"
+          referrerPolicy="no-referrer"
+          className="mt-3 h-[70dvh] w-full rounded-control border border-line bg-bg"
+        />
+        <a
+          className={`${buttonStyles({ variant: "line", size: "lg" })} mt-3`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Buka di tab baru
         </a>
       </div>
