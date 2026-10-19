@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.output/
+.nitro/
+.tanstack/
+.vercel/
+.wrangler/
+*.log
+.DS_Store
+.env
+.env.*
+coverage/
+screenshots/
+*.local
+.cache/
+
+# sandbox
+AGENTS.md
+AGENTS.project.md
+.grok/
+artifacts/
+
+.project_id

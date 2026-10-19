@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f3efe6;
+  --bg-deep: #e7e1d4;
+  --surface: #fffcf7;
+  --ink: #1c1915;
+  --muted: #6f675e;
+  --line: #e3dace;
+  --stamp: #0f6e56;
+  --stamp-ink: #f3fbf7;
+  --stamp-soft: #e5f4ee;
+  --warn: #9a3412;
+  --warn-soft: #fff1e8;
+  --danger: #9f1239;
+  --danger-soft: #fff1f2;
+  --shadow: 0 18px 40px rgba(28, 25, 21, 0.06);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #121410;
+  --bg-deep: #0c0d0b;
+  --surface: #1c1f1a;
+  --ink: #f4f0e8;
+  --muted: #b7b1a6;
+  --line: #2e332c;
+  --stamp: #3dbea0;
+  --stamp-ink: #06241c;
+  --stamp-soft: #16332c;
+  --warn: #fdba74;
+  --warn-soft: #2a2118;
+  --danger: #fda4af;
+  --danger-soft: #2a161b;
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-stamp: var(--stamp);
+  --color-stamp-ink: var(--stamp-ink);
+  --color-stamp-soft: var(--stamp-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --radius-card: 1.25rem;
+  --radius-control: 0.875rem;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--stamp-soft);
+    color: var(--ink);
+  }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+}
+
+.scrim {
+  background: color-mix(in srgb, var(--ink) 46%, transparent);
+}
+
+@keyframes compress-slide {
+  0% {
+    transform: translateX(-70%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+.compress-indeterminate {
+  animation: compress-slide 1.15s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compress-indeterminate {
+    animation: none;
+    width: 45%;
+  }
+}
