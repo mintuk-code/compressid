@@ -80,15 +80,43 @@ function hasToken(bytes: Uint8Array, token: Uint8Array, delimited: boolean, igno
   return false;
 }
 
+function isSafePrefix(bytes: Uint8Array, headerAt: number): boolean {
+  let index = 0;
+  if (
+    headerAt >= 3 &&
+    bytes[0] === 0xef &&
+    bytes[1] === 0xbb &&
+    bytes[2] === 0xbf
+  ) {
+    index = 3;
+  }
+  for (; index < headerAt; index += 1) {
+    const byte = bytes[index];
+    if (byte !== 9 && byte !== 10 && byte !== 12 && byte !== 13 && byte !== 32) return false;
+  }
+  return true;
+}
+
+/** Offset of %PDF-, or -1. A short BOM or whitespace before the header is allowed. */
+export function pdfStart(bytes: Uint8Array): number {
+  const limit = Math.min(bytes.length, 1024) - 5;
+  for (let index = 0; index <= limit; index += 1) {
+    if (
+      bytes[index] === 0x25 &&
+      bytes[index + 1] === 0x50 &&
+      bytes[index + 2] === 0x44 &&
+      bytes[index + 3] === 0x46 &&
+      bytes[index + 4] === 0x2d &&
+      isSafePrefix(bytes, index)
+    ) {
+      return index;
+    }
+  }
+  return -1;
+}
+
 export function hasPdfHeader(bytes: Uint8Array): boolean {
-  return (
-    bytes.length >= 5 &&
-    bytes[0] === 0x25 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x44 &&
-    bytes[3] === 0x46 &&
-    bytes[4] === 0x2d
-  );
+  return pdfStart(bytes) >= 0;
 }
 
 /** PDF dengan skrip, lampiran, atau HTML terselubung. Bukan pemindai virus. */

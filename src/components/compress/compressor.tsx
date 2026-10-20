@@ -107,7 +107,12 @@ export function Compressor() {
       setNote(null);
       return;
     }
-    const inspected = await inspectPdf(next);
+    let inspected: string | null = null;
+    try {
+      inspected = await inspectPdf(next);
+    } catch {
+      inspected = ERROR_TEXT.INVALID_PDF;
+    }
     if (id !== requestId.current) return;
     if (inspected) {
       setBanner(inspected);

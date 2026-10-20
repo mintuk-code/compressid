@@ -2,7 +2,7 @@ import * as pdfjs from "pdfjs-dist";
 import { EncryptedPDFError, PDFDocument } from "pdf-lib";
 import { LIMITS } from "../lib/compress/config";
 import { ERROR_TEXT } from "../lib/compress/messages";
-import { hasActivePdfContent, hasPdfHeader } from "../lib/compress/validate";
+import { hasActivePdfContent, pdfStart } from "../lib/compress/validate";
 import type { CompressMethod, CompressPayload, ResultStats, WorkerResult } from "../lib/compress/types";
 
 if (typeof window === "undefined") {
@@ -190,9 +190,11 @@ function toBuffer(bytes: Bytes): ArrayBuffer {
 
 async function run(payload: CompressPayload): Promise<WorkerResult> {
   pdfjs.GlobalWorkerOptions.workerSrc = payload.pdfWorkerUrl;
-  const original = new Uint8Array(payload.buffer);
-  if (!hasPdfHeader(original)) throw fail("INVALID_PDF");
-  if (hasActivePdfContent(original)) throw fail("UNSAFE_PDF");
+  const source = new Uint8Array(payload.buffer);
+  const start = pdfStart(source);
+  if (start < 0) throw fail("INVALID_PDF");
+  if (hasActivePdfContent(source)) throw fail("UNSAFE_PDF");
+  const original = start === 0 ? source : source.slice(start);
 
   postProgress(0.05, "Memeriksa PDF…");
   assertTime(payload.deadline);

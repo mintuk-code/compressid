@@ -51,7 +51,7 @@ export function ResultPanel({
         <Stat label="Ukuran awal" value={formatBytes(stats.inputBytes)} />
         <Stat label="Ukuran akhir" value={formatBytes(stats.outputBytes)} />
         <Stat label="Selisih" value={savedLabel} />
-        <Stat label="Pengurangan" value={formatPercent(Math.max(0, summary.reduction))} />
+        <Stat label="Pengurangan" value={formatPercent(summary.reduction)} />
       </dl>
 
       <p className="mt-4 text-sm text-muted">
@@ -124,7 +124,7 @@ export function ResultPanel({
       </p>
 
       {preview && fileUrl ? (
-        <PreviewDialog url={fileUrl} onClose={() => setPreview(false)} />
+        <PreviewDialog url={fileUrl} thumbUrl={thumbUrl} onClose={() => setPreview(false)} />
       ) : null}
       {popup && saweriaReady() ? <SaweriaDialog onClose={onClosePopup} /> : null}
     </div>
@@ -140,7 +140,15 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PreviewDialog({ url, onClose }: { url: string; onClose: () => void }) {
+function PreviewDialog({
+  url,
+  thumbUrl,
+  onClose,
+}: {
+  url: string;
+  thumbUrl: string | null;
+  onClose: () => void;
+}) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeRef.current?.focus();
@@ -161,7 +169,7 @@ function PreviewDialog({ url, onClose }: { url: string; onClose: () => void }) {
       >
         <div className="flex items-center justify-between gap-3">
           <h3 id="preview-title" className="font-display text-2xl text-ink">
-            Pratinjau PDF
+            Pratinjau halaman pertama
           </h3>
           <button
             ref={closeRef}
@@ -173,20 +181,27 @@ function PreviewDialog({ url, onClose }: { url: string; onClose: () => void }) {
             <X className="size-5" />
           </button>
         </div>
-        <iframe
-          title="Pratinjau PDF"
-          src={url}
-          sandbox="allow-scripts"
-          referrerPolicy="no-referrer"
-          className="mt-3 h-[70dvh] w-full rounded-control border border-line bg-bg"
-        />
+        {thumbUrl ? (
+          <img
+            src={thumbUrl}
+            alt="Halaman pertama hasil kompresi"
+            className="mt-3 max-h-[70dvh] w-full rounded-control border border-line bg-bg object-contain"
+          />
+        ) : (
+          <iframe
+            title="Pratinjau PDF"
+            src={url}
+            referrerPolicy="no-referrer"
+            className="mt-3 h-[70dvh] w-full rounded-control border border-line bg-bg"
+          />
+        )}
         <a
           className={`${buttonStyles({ variant: "line", size: "lg" })} mt-3`}
           href={url}
           target="_blank"
           rel="noopener noreferrer"
         >
-          Buka di tab baru
+          Buka PDF di tab baru
         </a>
       </div>
     </div>
