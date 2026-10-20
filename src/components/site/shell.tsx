@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { Coffee, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { SAWERIA, saweriaReady } from "@/lib/compress/config";
+import { buttonStyles } from "@/components/ui/button";
 
 const LINKS = [
   { to: "/compress-pdf", label: "Kompres PDF", match: (path: string) => path === "/" || path === "/compress-pdf" },
@@ -104,19 +106,32 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <div id="konten">{children}</div>
       <footer className="mt-16 border-t border-line">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>Copyright © 2026 maminnass</p>
-          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Kebijakan">
-            <Link to="/privacy" className="inline-flex min-h-11 items-center hover:text-ink">
-              Privasi
-            </Link>
-            <Link to="/terms" className="inline-flex min-h-11 items-center hover:text-ink">
-              Ketentuan
-            </Link>
-            <Link to="/faq" className="inline-flex min-h-11 items-center hover:text-ink">
-              FAQ
-            </Link>
-          </nav>
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8 sm:px-6">
+          {saweriaReady() ? (
+            <a
+              className={cn(buttonStyles({ variant: "quiet", size: "md" }), "w-full sm:w-auto")}
+              href={SAWERIA.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Coffee className="size-4" aria-hidden="true" />
+              Dukung maminnass di Saweria
+            </a>
+          ) : null}
+          <div className="flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+            <p>Copyright © 2026 maminnass</p>
+            <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Kebijakan">
+              <Link to="/privacy" className="inline-flex min-h-11 items-center hover:text-ink">
+                Privasi
+              </Link>
+              <Link to="/terms" className="inline-flex min-h-11 items-center hover:text-ink">
+                Ketentuan
+              </Link>
+              <Link to="/faq" className="inline-flex min-h-11 items-center hover:text-ink">
+                FAQ
+              </Link>
+            </nav>
+          </div>
         </div>
       </footer>
     </div>
