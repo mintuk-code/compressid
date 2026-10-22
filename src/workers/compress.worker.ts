@@ -65,6 +65,60 @@ async function structuralOptimize(bytes: Bytes, removeMetadata: boolean): Promis
   return doc.save({ useObjectStreams: true, addDefaultPage: false, objectsPerTick: 40 });
 }
 
+class WorkerCanvasFactory {
+  create(width: number, height: number) {
+    const canvas = new OffscreenCanvas(Math.max(1, Math.ceil(width)), Math.max(1, Math.ceil(height)));
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) throw fail("COMPRESSION_FAILED");
+    return { canvas, context };
+  }
+
+  reset(entry: { canvas: OffscreenCanvas }, width: number, height: number) {
+    entry.canvas.width = Math.max(1, Math.ceil(width));
+    entry.canvas.height = Math.max(1, Math.ceil(height));
+  }
+
+  destroy(entry: { canvas: OffscreenCanvas | null; context: OffscreenCanvasRenderingContext2D | null }) {
+    if (entry.canvas) {
+      entry.canvas.width = 0;
+      entry.canvas.height = 0;
+    }
+    entry.canvas = null;
+    entry.context = null;
+  }
+}
+
+class WorkerFilterFactory {
+  addFilter(): string {
+    return "none";
+  }
+  addHCMFilter(): string {
+    return "none";
+  }
+  addAlphaFilter(): string {
+    return "none";
+  }
+  addLuminosityFilter(): string {
+    return "none";
+  }
+  addKnockoutFilter(): string {
+    return "none";
+  }
+  addHighlightHCMFilter(): string {
+    return "none";
+  }
+  addSelectionHCMFilter(): string {
+    return "none";
+  }
+  addSelectionFilter(): string {
+    return "none";
+  }
+  createSelectionStyle(): null {
+    return null;
+  }
+  destroy(): void {}
+}
+
 async function openPdf(bytes: Bytes): Promise<Opened> {
   const task = pdfjs.getDocument({
     data: bytes.slice(),
@@ -78,6 +132,8 @@ async function openPdf(bytes: Bytes): Promise<Opened> {
     stopAtErrors: true,
     verbosity: 0,
     canvasMaxAreaInBytes: 16_777_216,
+    CanvasFactory: WorkerCanvasFactory,
+    FilterFactory: WorkerFilterFactory,
   });
   try {
     const doc = await task.promise;
@@ -99,16 +155,18 @@ function profilePlan(profile: CompressPayload["profile"], hasTarget: boolean): R
     maximum: { scale: 0.95, quality: 0.36, maxEdge: 1100 },
   };
   const first = presets[profile];
-  if (!hasTarget) return [first];
-  return [
+  const steps: RasterSettings[] = [
     first,
     {
       scale: first.scale * 0.8,
-      quality: Math.max(0.28, first.quality - 0.16),
-      maxEdge: Math.round(first.maxEdge * 0.85),
+      quality: Math.max(0.34, first.quality - 0.18),
+      maxEdge: Math.round(first.maxEdge * 0.82),
     },
-    { scale: first.scale * 0.66, quality: 0.26, maxEdge: 980 },
   ];
+  if (hasTarget || profile !== "recommended") {
+    steps.push({ scale: first.scale * 0.62, quality: 0.28, maxEdge: 900 });
+  }
+  return steps;
 }
 
 function applyGrayscale(ctx: OffscreenCanvasRenderingContext2D, width: number, height: number) {
@@ -270,8 +328,11 @@ async function run(payload: CompressPayload): Promise<WorkerResult> {
           postProgress(0.9, "Menyusun PDF…");
           const raster = await buildRasterPdf(rendered, payload.removeMetadata);
           consider(raster, "raster");
-          if (payload.targetBytes == null) break;
-          if (raster.byteLength <= payload.targetBytes) break;
+          const smallEnough =
+            payload.targetBytes != null
+              ? raster.byteLength <= payload.targetBytes
+              : raster.byteLength <= original.byteLength * 0.92;
+          if (smallEnough) break;
         } catch (error) {
           const code = knownCode(error);
           if (code === "PROCESSING_TIMEOUT" || code === "PASSWORD_PROTECTED" || code === "PAGE_LIMIT") throw error;
